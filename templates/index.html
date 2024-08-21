@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bengali to Hindi Translator</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f9;
+            color: #333;
+            text-align: center;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            width: 80%;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            color: #4a90e2;
+        }
+        button {
+            background-color: #4a90e2;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+        button:hover {
+            background-color: #357abd;
+        }
+        p {
+            font-size: 18px;
+            margin: 20px 0;
+        }
+        strong {
+            color: #4a90e2;
+        }
+        span {
+            display: block;
+            margin-top: 10px;
+            font-size: 20px;
+            color: #333;
+            background-color: #f1f1f1;
+            padding: 10px;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Bengali to Hindi</h1>
+        <button onclick="startRecognition()">Start Speaking</button>
+        <p><strong>Bengali Text:</strong> <span id="bengaliText">...</span></p>
+        <p><strong>Hindi Text:</strong> <span id="hindiText">...</span></p>
+    </div>
+
+    <script>
+        function startRecognition() {
+            const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+            recognition.lang = 'bn-BD';
+            recognition.onresult = async function(event) {
+                const bengaliText = event.results[0][0].transcript;
+                document.getElementById('bengaliText').innerText = bengaliText;
+                const response = await fetch('/translate', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ text: bengaliText })
+                });
+                const result = await response.json();
+                document.getElementById('hindiText').innerText = result.translated_text;
+            };
+            recognition.start();
+        }
+    </script>
+</body>
+</html>
