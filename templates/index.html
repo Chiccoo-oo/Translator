@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bengali to Hindi Translator</title>
+    <title>Bengali-Hindi Translator</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -59,41 +59,67 @@
             margin-top: 20px;
             width: 100%;
         }
+
+        select {
+            margin-bottom: 20px;
+            padding: 10px;
+            font-size: 16px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>Bengali to Hindi Translator</h1>
+        <h1>Bengali-Hindi Translator</h1>
+        <select id="languageSelect">
+            <option value="bn-hi">Bengali to Hindi</option>
+            <option value="hi-bn">Hindi to Bengali</option>
+        </select>
         <button onclick="startRecognition()">Start Speaking</button>
-        <p><strong>Bengali Text:</strong> <span id="bengaliText"></span></p>
-        <p><strong>Hindi Text:</strong> <span id="hindiText"></span></p>
-        <audio id="hindiAudio" controls></audio>
+        <p><strong><span id="sourceLanguageLabel">Bengali</span> Text:</strong> <span id="sourceText"></span></p>
+        <p><strong><span id="targetLanguageLabel">Hindi</span> Text:</strong> <span id="translatedText"></span></p>
+        <audio id="translatedAudio" controls></audio>
     </div>
 
     <script>
         function startRecognition() {
+            const languageSelect = document.getElementById('languageSelect').value;
+            const [sourceLang, targetLang] = languageSelect.split('-');
+            
             const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
-            recognition.lang = 'bn-BD';
+            recognition.lang = sourceLang === 'bn' ? 'bn-BD' : 'hi-IN';
+            
             recognition.onresult = async function(event) {
-                const bengaliText = event.results[0][0].transcript;
-                document.getElementById('bengaliText').innerText = bengaliText;
+                const sourceText = event.results[0][0].transcript;
+                document.getElementById('sourceText').innerText = sourceText;
+                
                 const response = await fetch('/translate', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                     },
-                    body: JSON.stringify({ text: bengaliText })
+                    body: JSON.stringify({ text: sourceText, src_lang: sourceLang })
                 });
+                
                 const result = await response.json();
-                document.getElementById('hindiText').innerText = result.translated_text;
+                document.getElementById('translatedText').innerText = result.translated_text;
 
                 // Set the audio source and play
-                const hindiAudio = document.getElementById('hindiAudio');
-                hindiAudio.src = result.audio_url;
-                hindiAudio.play();
+                const translatedAudio = document.getElementById('translatedAudio');
+                translatedAudio.src = result.audio_url;
+                translatedAudio.play();
             };
+
             recognition.start();
         }
+
+        // Update labels when language selection changes
+        document.getElementById('languageSelect').addEventListener('change', function() {
+            const [sourceLang, targetLang] = this.value.split('-');
+            document.getElementById('sourceLanguageLabel').innerText = sourceLang === 'bn' ? 'Bengali' : 'Hindi';
+            document.getElementById('targetLanguageLabel').innerText = targetLang === 'hi' ? 'Hindi' : 'Bengali';
+        });
     </script>
 </body>
 </html>
